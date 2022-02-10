@@ -10,9 +10,27 @@ object Main {
             .config("spark.eventLog.enabled", "false")
             .getOrCreate()
             
-        println("===================")
-        println("Hello Spark!")
-        println("===================")
+        sparkCovidData()
+
+
         spark.stop()
+
+
+        def sparkCovidData():Unit = {
+            println("====================")
+            println("Welcome to Team 1's Spark Covid Data Analysis")
+            println("====================")
+            var endProgram = false
+            while (!endProgram){
+                mainmenu()
+            }
+        }
+
+        def mainmenu():Unit = {
+            println
+        }
+
+
+
     }
 }
