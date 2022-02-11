@@ -18,7 +18,7 @@ object Main {
 
         def sparkCovidData():Unit = {
             println("====================")
-            println("Welcome to Team 1's Spark Covid Data Analysis")
+            println("Welcome to Team 1's Spark Covid Data Analysis ")
             println("====================")
             var endProgram = false
             while (!endProgram){
