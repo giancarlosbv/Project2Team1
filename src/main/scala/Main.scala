@@ -14,7 +14,7 @@ object Main {
         
 
 
-        sparkCovidData()
+        sparkCovidData() //calling method that holds all of what's happening in our code
 
 
         spark.stop()
@@ -22,19 +22,30 @@ object Main {
 
         def sparkCovidData():Unit = {
             var scanner = new Scanner(System.in)
-
             println("====================")
             println("Welcome to Team 1's Spark Covid Data Analysis")
-            var endProgram = false
-            while (!endProgram){
+            var endProgram = false //endProgram boolean flag, set to false, if ever set to true, program will end as defined by while loop and use of ! operator. 
+            while (!endProgram){ //while endProgram is NOT true, loop executes. if endProgram IS true, loop will not execute
                 mainMenu()
             }
 
             def mainMenu():Unit = {
-            println("====================")
+            println("====================") //start every method or new prints with 10 "=" for readability, separation of things
             println("Main menu")
+            println("1. Median Age Of Vaccinated People Based Off Location")
+            println("2. Deaths Among Vaccinated People Between Ages 65 And 70")
+            println("3. Median Age Of Death")
+            println("4. New Cases In People 70 Plus")
+            println("5. Deaths Vs. Vaccinations Per Continent")
+            println("6. LifeExpectancyOfPeople70Plus")
+            println("7. Continent With Most Cases In A 30 Day Period")
+            println("8. New and Total Cases, New and Total Deaths In People 65 Plus Per Continent")
+            println("9. Population Density Vs Total Vaccinations,Cases, and Deaths")
+            println("10. Total Covid Cases In Locations Where Total Vaccination Rate Is Above 50 Percent")
+            println("11. Exit")
             var menuChoice = scanner.nextInt()
             scanner.nextLine()
+            //match case, similar to if else chain, but a little cleaner and built in error handling through "_" or default case
             menuChoice match {
                 case 1 =>
                     MedianAgeOfVaccinatedPeopleBasedOffLocation()
@@ -56,9 +67,10 @@ object Main {
                     PopulationDensityVsTotalVaccination_Cases_Deaths
                 case 10 =>
                     TotalCovidCasesInLocationsWhereTotalVaccinationRateIsAbove50Percent
-                case 11 =>
+                case 11 => //exit program by choosing 11, endProgram boolean is set to true and while look ends.
                     endProgram = true
-                case _ =>
+                case _ => //handles invalid inputs, only valid inputs are the "cases" defined above, any other input will be handled by this
+                    println("====================")
                     println("Invalid Input, Try again")
                     mainMenu()
             }
