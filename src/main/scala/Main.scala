@@ -1,8 +1,29 @@
+
+import org.apache.spark.sql.hive.HiveContext
+import org.apache.spark.SparkConf
+import org.apache.spark.SparkContext
+import org.apache.spark.SparkContext._
+import org.apache.spark.sql.SQLContext
+import java.sql.DriverManager
+import java.sql.Connection
 import org.apache.spark.sql.SparkSession
 import java.util.Scanner
 import scala.util.matching.Regex.Match
 object Main {
     def main(args:Array[String]): Unit = {
+
+        System.setSecurityManager(null)
+        System.setProperty("hadoop.home.dir", "C:\\hadoop\\") 
+        val conf = new SparkConf()
+            .setMaster("local") 
+            .setAppName("Project2Team1")    
+        val sc = new SparkContext(conf)
+        sc.setLogLevel("ERROR")
+        val hiveCtx = new HiveContext(sc)
+        import hiveCtx.implicits._
+
+         
+       
         val spark = 
             SparkSession
             .builder
@@ -12,15 +33,41 @@ object Main {
             .getOrCreate()
             
         
-
+        
 
         sparkCovidData() //calling method that holds all of what's happening in our code
 
 
         spark.stop()
 
+    def insertCovidData(hiveCtx:HiveContext): Unit = 
+    {
+        hiveCtx.sql("DROP TABLE IF EXISTS Table")
+        
+         val output = hiveCtx.read
+            .format("csv")
+            .option("inferSchema", "true")
+            .option("header", "true")
+            .load("input/covid-data.csv")
+        
+
+     
+        output.createOrReplaceTempView("temp_data")
+        hiveCtx.sql("CREATE TABLE IF NOT EXISTS Table (iso_code STRING, continent STRING, location STRING, date DATE, total_cases INT, new_cases INT, total_deaths INT, new_deaths INT, new_tests INT, total_tests INT, total_vaccinations INT, people_vaccinated INT, people_fully_vaccinated INT, population INT, population_density INT, median_age INT, aged_65_older INT, aged_70_older INT, gdp_per_capita INT, hospital_beds_per_thousand INT, life_expectancy INT )")
+        hiveCtx.sql("INSERT INTO Table SELECT * FROM temp_data")
+        
+        val summary = hiveCtx.sql("SELECT * FROM Table LIMIT 10")
+
+
+        //summary.show()
+    }
+
+
 
         def sparkCovidData():Unit = {
+            
+            insertCovidData(hiveCtx)
+
             var scanner = new Scanner(System.in)
             println("====================")
             println("Welcome to Team 1's Spark Covid Data Analysis")
@@ -157,6 +204,10 @@ object Main {
 
 
         }
+
+
+   
+    
         }
 
         
@@ -170,3 +221,18 @@ object Main {
 
     }
 }
+
+
+    
+
+        
+
+
+
+
+
+
+
+
+    
+
