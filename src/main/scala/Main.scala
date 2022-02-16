@@ -1,26 +1,73 @@
+
+import org.apache.spark.sql.hive.HiveContext
+import org.apache.spark.SparkConf
+import org.apache.spark.SparkContext
+import org.apache.spark.SparkContext._
+import org.apache.spark.sql.SQLContext
+import java.sql.DriverManager
+import java.sql.Connection
 import org.apache.spark.sql.SparkSession
 import java.util.Scanner
 import scala.util.matching.Regex.Match
 object Main {
     def main(args:Array[String]): Unit = {
+
+        System.setSecurityManager(null)
+        System.setProperty("hadoop.home.dir", "C:\\hadoop\\") 
+        val conf = new SparkConf()
+            .setMaster("local") 
+            .setAppName("Project2Team1")    
+        val sc = new SparkContext(conf)
+        sc.setLogLevel("ERROR")
+        val hiveCtx = new HiveContext(sc)
+        import hiveCtx.implicits._
+
+         
+       
         val spark = 
             SparkSession
             .builder
-            .appName("SparkHelloWorld")
+            .appName("Project2Team1")
             .config("spark.master", "local")
             .config("spark.eventLog.enabled", "false")
             .getOrCreate()
             
         
-
+        
 
         sparkCovidData() //calling method that holds all of what's happening in our code
 
 
         spark.stop()
 
+    def insertCovidData(hiveCtx:HiveContext): Unit = 
+    {
+        hiveCtx.sql("DROP TABLE IF EXISTS Table")
+        
+         val output = hiveCtx.read
+            .format("csv")
+            .option("inferSchema", "true")
+            .option("header", "true")
+            .load("input/covid-data.csv")
+        
+
+     
+        output.createOrReplaceTempView("temp_data")
+        hiveCtx.sql("CREATE TABLE IF NOT EXISTS Table (iso_code STRING, continent STRING, location STRING, date STRING, total_cases INT, new_cases INT, total_deaths INT, new_deaths INT, new_tests INT, total_tests INT, total_vaccinations INT, people_vaccinated INT, people_fully_vaccinated INT, population INT, population_density INT, median_age INT, aged_65_older INT, aged_70_older INT, gdp_per_capita INT, hospital_beds_per_thousand INT, life_expectancy INT )")
+        hiveCtx.sql("INSERT INTO Table SELECT * FROM temp_data")
+        
+        val summary = hiveCtx.sql("SELECT * FROM Table LIMIT 10")
+
+
+        //summary.show()
+    }
+
+
 
         def sparkCovidData():Unit = {
+            
+            insertCovidData(hiveCtx)
+
             var scanner = new Scanner(System.in)
             println("====================")
             println("Welcome to Team 1's Spark Covid Data Analysis")
@@ -60,13 +107,13 @@ object Main {
                 case 6 =>
                     LifeExpectancyOfPeople70Plus()
                 case 7 =>
-                    ContinentWithMostCasesInA30DayPeriod
+                    ContinentWithMostFullyVaccinated()
                 case 8 =>
-                    NewAndTotalCases_NewAndTotalDeaths_InPeople65Plus_PerContinent
+                    NewAndTotalCases_NewAndTotalDeaths_InPeople65Plus_PerContinent()
                 case 9 =>
-                    PopulationDensityVsTotalVaccination_Cases_Deaths
+                    PopulationDensityVsTotalVaccination_Cases_Deaths()
                 case 10 =>
-                    TotalCovidCasesInLocationsWhereTotalVaccinationRateIsAbove50Percent
+                    TotalCovidCasesInLocationsWhereTotalVaccinationRateIsAbove50Percent()
                 case 11 => //exit program by choosing 11, endProgram boolean is set to true and while look ends.
                     endProgram = true
                 case _ => //handles invalid inputs, only valid inputs are the "cases" defined above, any other input will be handled by this
@@ -81,22 +128,24 @@ object Main {
         def MedianAgeOfVaccinatedPeopleBasedOffLocation(): Unit =
         {   println("method 1")
 
-        }
+        val result = hiveCtx.sql("select avg(median_age), sum(total_vaccinations), location, max(people_fully_vaccinated) from Table where median_age is not null group by location order by 1")
+        result.show   }
 
         //Method to calculate the number of deaths among vaccinated people between the age of 65 and 70
         //Fields: New_Deaths, People_Vaccinated, Total_Vaccinations
         def DeathsAmongVaccinatedPeopleBetweenAges65And70():Unit =  
         {
+//this one
 
-
-        }
+val result = hiveCtx.sql("select location, sum(new_deaths), sum(people_vaccinated), sum(total_vaccinations), avg(aged_65_older) from Table group by location")
+     result.show   }
 
 
         //Method to calculate the median age of death
         //Fields: Median_Age, Total_Deaths
         def MedianAgeOfDeath():Unit =  
         {
-
+            
 
         }
 
@@ -127,10 +176,10 @@ object Main {
 
         //Method to calculate which continent had the largest number of cases in a 30 day period
         //Fields: Location, Total_Cases, New_Cases, Date
-        def ContinentWithMostCasesInA30DayPeriod():Unit =  
+        def ContinentWithMostFullyVaccinated():Unit =  
         {
-
-
+            val result = hiveCtx.sql("Select location, MAX(people_fully_vaccinated) from Table group by location")
+            result.show 
         }
 
         //Method to calculate all this stuff
@@ -154,9 +203,13 @@ object Main {
         //Fields: Population, Location, New_Cases, People_Fully_Vaccinated
         def TotalCovidCasesInLocationsWhereTotalVaccinationRateIsAbove50Percent():Unit =  
         {
-
-
+val result = hiveCtx.sql("select sum(population), location, sum(new_cases), AVG(people_fully_vaccinated) from Table group by location") 
+result.show
         }
+
+
+   
+    
         }
 
         
@@ -170,3 +223,13 @@ object Main {
 
     }
 }
+
+
+    
+
+        
+
+
+
+
+
