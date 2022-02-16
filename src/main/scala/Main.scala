@@ -137,7 +137,7 @@ object Main {
         {
 //this one
 
-val result = hiveCtx.sql("select location, sum(new_deaths), sum(people_vaccinated), sum(total_vaccinations), avg(aged_65_older) from Table group by location")
+    val result = hiveCtx.sql("select location, sum(new_deaths), sum(people_vaccinated), sum(total_vaccinations), avg(aged_65_older) from Table group by location")
      result.show   }
 
 
@@ -183,11 +183,13 @@ val result = hiveCtx.sql("select location, sum(new_deaths), sum(people_vaccinate
         }
 
         //Method to calculate all this stuff
-        //Fields: New_Cases, Total_Cases, New Deaths, Total_Deaths, Aged_65_Older, Continent, Location
+        //Fields: new_cases, total_cases, new_deaths, total_deaths, aged_65_older, aged_70_older, continent, location
         def NewAndTotalCases_NewAndTotalDeaths_InPeople65Plus_PerContinent():Unit =  
         {
-
-
+            println("====================")
+            println("New/Total Cases, New/TotalDeaths in ")
+            val result = hiveCtx.sql("SELECT continent, sum(new_cases), SUM(total_cases), SUM(new_deaths), SUM(total_deaths), Round(SUM(new_cases)/SUM(population), 5) AS newCaseRate, SUM(new_deaths)/SUM(population) AS death_rate FROM table WHERE date = '2/7/2022' AND continent IS NOT NULL GROUP BY continent ORDER BY 2 DESC ")
+            result.show()
         }
 
         //Method to calculate Population Density and compare it to Total Vaccinations, Cases, and Deaths
@@ -195,7 +197,10 @@ val result = hiveCtx.sql("select location, sum(new_deaths), sum(people_vaccinate
             //New_Deaths, New_Tests, Total_Tests, Total_Vaccinations
         def PopulationDensityVsTotalVaccination_Cases_Deaths():Unit =  
         {
-
+            // println("====================")
+            // println("New/Total Cases, New/TotalDeaths in ")
+            // val result = hiveCtx.sql("SELECT continent, SUM(new_cases), SUM(total_cases), SUM(new_deaths), SUM(total_deaths) FROM table WHERE continent IS NOT NULL GROUP BY continent ORDER BY 2 DESC ")
+            // result.show()
 
         }
 
