@@ -85,8 +85,8 @@ object Main {
             println("4. New Cases In People 70 Plus")
             println("5. Deaths Vs. Vaccinations Per Continent")
             println("6. LifeExpectancyOfPeople70Plus")
-            println("7. Continent With Most Cases In A 30 Day Period")
-            println("8. New and Total Cases, New and Total Deaths In People 65 Plus Per Continent")
+            println("7. Continent With Most Fully Vaccinated")
+            println("8. New and Total Cases, New and Total Deaths by Continent")
             println("9. Population Density Vs Total Vaccinations,Cases, and Deaths")
             println("10. Total Covid Cases In Locations Where Total Vaccination Rate Is Above 50 Percent")
             println("11. Exit")
@@ -109,9 +109,9 @@ object Main {
                 case 7 =>
                     ContinentWithMostFullyVaccinated()
                 case 8 =>
-                    NewAndTotalCases_NewAndTotalDeaths_InPeople65Plus_PerContinent()
+                    NewAndTotalCases_NewAndTotalDeaths_ByContinent()
                 case 9 =>
-                    PopulationDensityVsTotalVaccination_Cases_Deaths()
+                    PopulationDensityVsNewCaseRate()
                 case 10 =>
                     TotalCovidCasesInLocationsWhereTotalVaccinationRateIsAbove50Percent()
                 case 11 => //exit program by choosing 11, endProgram boolean is set to true and while look ends.
@@ -135,10 +135,11 @@ object Main {
         //Fields: New_Deaths, People_Vaccinated, Total_Vaccinations
         def DeathsAmongVaccinatedPeopleBetweenAges65And70():Unit =  
         {
-//this one
+        //this one
 
-    val result = hiveCtx.sql("select location, sum(new_deaths), sum(people_vaccinated), sum(total_vaccinations), avg(aged_65_older) from Table group by location")
-     result.show   }
+        val result = hiveCtx.sql("select location, sum(new_deaths), sum(people_vaccinated), sum(total_vaccinations), avg(aged_65_older) from Table group by location")
+        result.show   
+    }
 
 
         //Method to calculate the median age of death
@@ -184,23 +185,25 @@ object Main {
 
         //Method to calculate all this stuff
         //Fields: new_cases, total_cases, new_deaths, total_deaths, aged_65_older, aged_70_older, continent, location
-        def NewAndTotalCases_NewAndTotalDeaths_InPeople65Plus_PerContinent():Unit =  
+        def NewAndTotalCases_NewAndTotalDeaths_ByContinent():Unit =  
         {
             println("====================")
-            println("New/Total Cases, New/TotalDeaths in ")
+            println("New/Total Cases, New/TotalDeaths by continent ")
             val result = hiveCtx.sql("SELECT continent, sum(new_cases), SUM(total_cases), SUM(new_deaths), SUM(total_deaths), Round(SUM(new_cases)/SUM(population), 5) AS newCaseRate, SUM(new_deaths)/SUM(population) AS death_rate FROM table WHERE date = '2/7/2022' AND continent IS NOT NULL GROUP BY continent ORDER BY 2 DESC ")
             result.show()
+            result.write.csv("results/NewAndTotalCases_NewAndTotalDeaths_ByContinent")
         }
 
         //Method to calculate Population Density and compare it to Total Vaccinations, Cases, and Deaths
         //Fields: Population_Density, Population, Continent, Location, Date, Total_Cases, New_Cases, Total_Deaths
             //New_Deaths, New_Tests, Total_Tests, Total_Vaccinations
-        def PopulationDensityVsTotalVaccination_Cases_Deaths():Unit =  
+        def PopulationDensityVsNewCaseRate():Unit =  
         {
-            // println("====================")
-            // println("New/Total Cases, New/TotalDeaths in ")
-            // val result = hiveCtx.sql("SELECT continent, SUM(new_cases), SUM(total_cases), SUM(new_deaths), SUM(total_deaths) FROM table WHERE continent IS NOT NULL GROUP BY continent ORDER BY 2 DESC ")
-            // result.show()
+            println("====================")
+            println("Population Density vs New Case Rate")
+            val result = hiveCtx.sql("SELECT location, sum(population), AVG(population_density), SUM(new_cases)/SUM(population) AS NewCaseRate , sum(new_cases) FROM table WHERE date = '2/7/2022' group by location order by 3 DESC ")
+            result.show()
+            result.write.csv("results/PopulationDensityVsNewCaseRate")
 
         }
 
@@ -213,7 +216,7 @@ result.show
         }
 
 
-   
+
     
         }
 
