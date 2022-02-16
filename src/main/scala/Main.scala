@@ -22,8 +22,6 @@ object Main {
         val hiveCtx = new HiveContext(sc)
         import hiveCtx.implicits._
 
-         
-       
         val spark = 
             SparkSession
             .builder
@@ -44,30 +42,30 @@ object Main {
     {
         hiveCtx.sql("DROP TABLE IF EXISTS Table")
         
-         val output = hiveCtx.read
+    val output = hiveCtx.read
             .format("csv")
             .option("inferSchema", "true")
             .option("header", "true")
             .load("input/covid-data.csv")
         
 
-     
+    
         output.createOrReplaceTempView("temp_data")
-        hiveCtx.sql("CREATE TABLE IF NOT EXISTS Table (iso_code STRING, continent STRING, location STRING, date DATE, total_cases INT, new_cases INT, total_deaths INT, new_deaths INT, new_tests INT, total_tests INT, total_vaccinations INT, people_vaccinated INT, people_fully_vaccinated INT, population INT, population_density INT, median_age INT, aged_65_older INT, aged_70_older INT, gdp_per_capita INT, hospital_beds_per_thousand INT, life_expectancy INT )")
+        hiveCtx.sql("CREATE TABLE IF NOT EXISTS Table (iso_code STRING, continent STRING, location STRING, date string, total_cases INT, new_cases INT, total_deaths INT, new_deaths INT, new_tests INT, total_tests INT, total_vaccinations INT, people_vaccinated INT, people_fully_vaccinated INT, population INT, population_density INT, median_age INT, aged_65_older INT, aged_70_older INT, gdp_per_capita INT, hospital_beds_per_thousand INT, life_expectancy INT )")
         hiveCtx.sql("INSERT INTO Table SELECT * FROM temp_data")
         
-        val summary = hiveCtx.sql("SELECT * FROM Table LIMIT 10")
+        val summary = hiveCtx.sql("SELECT * FROM Table WHERE people_vaccinated IS NOT NULL LIMIT 10")
 
-
-        //summary.show()
+        summary.printSchema()
+        summary.show()
     }
 
 
 
         def sparkCovidData():Unit = {
             
-            insertCovidData(hiveCtx)
-
+            // insertCovidData(hiveCtx)
+            
             var scanner = new Scanner(System.in)
             println("====================")
             println("Welcome to Team 1's Spark Covid Data Analysis")
@@ -181,11 +179,13 @@ object Main {
         }
 
         //Method to calculate all this stuff
-        //Fields: New_Cases, Total_Cases, New Deaths, Total_Deaths, Aged_65_Older, Continent, Location
+        //Fields: new_cases, total_cases, new_deaths, total_deaths, aged_65_older, aged_70_older, continent, location
         def NewAndTotalCases_NewAndTotalDeaths_InPeople65Plus_PerContinent():Unit =  
         {
-
-
+            println("====================")
+            println("New/Total Cases, New/TotalDeaths in ")
+            val result = hiveCtx.sql("SELECT continent, sum(new_cases), SUM(total_cases), SUM(new_deaths), SUM(total_deaths), Round(SUM(new_cases)/SUM(population), 5) AS newCaseRate, SUM(new_deaths)/SUM(population) AS death_rate FROM table WHERE date = '2/7/2022' AND continent IS NOT NULL GROUP BY continent ORDER BY 2 DESC ")
+            result.show()
         }
 
         //Method to calculate Population Density and compare it to Total Vaccinations, Cases, and Deaths
@@ -193,7 +193,10 @@ object Main {
             //New_Deaths, New_Tests, Total_Tests, Total_Vaccinations
         def PopulationDensityVsTotalVaccination_Cases_Deaths():Unit =  
         {
-
+            // println("====================")
+            // println("New/Total Cases, New/TotalDeaths in ")
+            // val result = hiveCtx.sql("SELECT continent, SUM(new_cases), SUM(total_cases), SUM(new_deaths), SUM(total_deaths) FROM table WHERE continent IS NOT NULL GROUP BY continent ORDER BY 2 DESC ")
+            // result.show()
 
         }
 
@@ -206,7 +209,7 @@ object Main {
         }
 
 
-   
+
     
         }
 
