@@ -126,7 +126,8 @@ object Main {
         //Method to calculate the median age of vaccinated people related to their location
         //Fields: Median_Age, Total_Vaccinations, Location
         def MedianAgeOfVaccinatedPeopleBasedOffLocation(): Unit =
-        {   println("method 1")
+        {   
+            println("====================")
 
         val result = hiveCtx.sql("select avg(median_age), sum(total_vaccinations), location, max(people_fully_vaccinated) from Table where median_age is not null group by location order by 1")
         result.show   }
@@ -136,6 +137,7 @@ object Main {
         def DeathsAmongVaccinatedPeopleBetweenAges65And70():Unit =  
         {
         //this one
+        println("====================")
 
         val result = hiveCtx.sql("select location, sum(new_deaths), sum(people_vaccinated), sum(total_vaccinations), avg(aged_65_older) from Table group by location")
         result.show   
@@ -146,6 +148,7 @@ object Main {
         //Fields: Median_Age, Total_Deaths
         def MedianAgeOfDeath():Unit =  
         {
+            println("====================")
             
 
         }
@@ -154,6 +157,7 @@ object Main {
         //Fields: New_Cases, Aged_70_Older, New_Deaths, Total_Deaths
         def NewCasesInPeople70Plus():Unit =  
         {
+            println("====================")
 
 
         }
@@ -162,6 +166,7 @@ object Main {
         //Fields: Continent, Total_Deaths, People_Vaccinated
         def DeathsVSVaccinationPerContinent():Unit =  
         {
+            println("====================")
 
 
         }
@@ -170,7 +175,7 @@ object Main {
         //Fields: Life_Expectancy, Aged_70_Older
         def LifeExpectancyOfPeople70Plus():Unit =  
         {
-
+            println("====================")
 
         }
 
@@ -179,6 +184,7 @@ object Main {
         //Fields: Location, Total_Cases, New_Cases, Date
         def ContinentWithMostFullyVaccinated():Unit =  
         {
+            println("====================")
             val result = hiveCtx.sql("Select location, MAX(people_fully_vaccinated) from Table group by location")
             result.show 
         }
@@ -211,8 +217,9 @@ object Main {
         //Fields: Population, Location, New_Cases, People_Fully_Vaccinated
         def TotalCovidCasesInLocationsWhereTotalVaccinationRateIsAbove50Percent():Unit =  
         {
-val result = hiveCtx.sql("select sum(population), location, sum(new_cases), AVG(people_fully_vaccinated) from Table group by location") 
-result.show
+            println("====================")
+            val result = hiveCtx.sql("select sum(population), location, sum(new_cases), AVG(people_fully_vaccinated) from Table group by location") 
+            result.show
         }
 
 
