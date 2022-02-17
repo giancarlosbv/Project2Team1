@@ -53,7 +53,7 @@ object Main {
 
      
         output.createOrReplaceTempView("temp_data")
-        hiveCtx.sql("CREATE TABLE IF NOT EXISTS Table (iso_code STRING, continent STRING, location STRING, date STRING, total_cases INT, new_cases INT, total_deaths INT, new_deaths INT, new_tests INT, total_tests INT, total_vaccinations INT, people_vaccinated INT, people_fully_vaccinated INT, population INT, population_density INT, median_age INT, aged_65_older INT, aged_70_older INT, gdp_per_capita INT, hospital_beds_per_thousand INT, life_expectancy INT )")
+        hiveCtx.sql("CREATE TABLE IF NOT EXISTS Table (iso_code STRING, continent STRING, location STRING, date STRING, total_cases INT, new_cases INT, total_deaths INT, new_deaths INT, new_tests INT, total_tests INT, total_vaccinations INT, people_vaccinated INT, people_fully_vaccinated INT, population FLOAT, population_density INT, median_age INT, aged_65_older INT, aged_70_older INT, gdp_per_capita INT, hospital_beds_per_thousand INT, life_expectancy INT )")
         hiveCtx.sql("INSERT INTO Table SELECT * FROM temp_data")
         
         val summary = hiveCtx.sql("SELECT * FROM Table LIMIT 10")
@@ -85,10 +85,10 @@ object Main {
             println("4. New Cases In People 70 Plus")
             println("5. Deaths Vs. Vaccinations Per Continent")
             println("6. LifeExpectancyOfPeople70Plus")
-            println("7. Continent With Most Cases In A 30 Day Period")
+            println("7. Continent With Most fully Vaccinated People")
             println("8. New and Total Cases, New and Total Deaths In People 65 Plus Per Continent")
             println("9. Population Density Vs Total Vaccinations,Cases, and Deaths")
-            println("10. Total Covid Cases In Locations Where Total Vaccination Rate Is Above 50 Percent")
+            println("10. Total Covid Cases In Locations Where Total Vaccination Rate Is Above 20 Percent")
             println("11. Exit")
             var menuChoice = scanner.nextInt()
             scanner.nextLine()
@@ -113,7 +113,7 @@ object Main {
                 case 9 =>
                     PopulationDensityVsTotalVaccination_Cases_Deaths()
                 case 10 =>
-                    TotalCovidCasesInLocationsWhereTotalVaccinationRateIsAbove50Percent()
+                    TotalCovidCasesInLocationsWhereTotalVaccinationRateIsAbove20Percent()
                 case 11 => //exit program by choosing 11, endProgram boolean is set to true and while look ends.
                     endProgram = true
                 case _ => //handles invalid inputs, only valid inputs are the "cases" defined above, any other input will be handled by this
@@ -128,8 +128,9 @@ object Main {
         def MedianAgeOfVaccinatedPeopleBasedOffLocation(): Unit =
         {   println("method 1")
 
-        val result = hiveCtx.sql("select avg(median_age), sum(total_vaccinations), location, max(people_fully_vaccinated) from Table where median_age is not null group by location order by 1")
-        result.show   }
+        val result = hiveCtx.sql("select avg(median_age), sum(total_vaccinations), location, max(people_fully_vaccinated) from Table where median_age is not null group by location order by 1 limit 10")
+        result.show   
+        result.repartition(1).write.format("com.databricks.spark.csv").option("header","true").mode("overwrite").save("results/medianAgeOfVaccinatedPeopleBasedOffLocation")}
 
         //Method to calculate the number of deaths among vaccinated people between the age of 65 and 70
         //Fields: New_Deaths, People_Vaccinated, Total_Vaccinations
@@ -137,8 +138,9 @@ object Main {
         {
 //this one
 
-    val result = hiveCtx.sql("select location, sum(new_deaths), sum(people_vaccinated), sum(total_vaccinations), avg(aged_65_older) from Table group by location")
-     result.show   }
+    val result = hiveCtx.sql("select location, sum(new_deaths), sum(people_vaccinated), sum(total_vaccinations), avg(aged_65_older) from Table group by location limit 10")
+     result.show  
+      result.repartition(1).write.format("com.databricks.spark.csv").option("header","true").mode("overwrite").save("results/deathsAmongVaccinatedPeopleBetweenAges65And70") }
 
 
         //Method to calculate the median age of death
@@ -178,8 +180,9 @@ object Main {
         //Fields: Location, Total_Cases, New_Cases, Date
         def ContinentWithMostFullyVaccinated():Unit =  
         {
-            val result = hiveCtx.sql("Select location, MAX(people_fully_vaccinated) from Table group by location")
+            val result = hiveCtx.sql("Select location, MAX(people_fully_vaccinated) from Table group by location order by MAX(people_fully_vaccinated) DESC limit 10")
             result.show 
+            result.repartition(1).write.format("com.databricks.spark.csv").option("header","true").mode("overwrite").save("results/ContinentWithMostFullyVaccinated")
         }
 
         //Method to calculate all this stuff
@@ -188,7 +191,7 @@ object Main {
         {
             println("====================")
             println("New/Total Cases, New/TotalDeaths in ")
-            val result = hiveCtx.sql("SELECT continent, sum(new_cases), SUM(total_cases), SUM(new_deaths), SUM(total_deaths), Round(SUM(new_cases)/SUM(population), 5) AS newCaseRate, SUM(new_deaths)/SUM(population) AS death_rate FROM table WHERE date = '2/7/2022' AND continent IS NOT NULL GROUP BY continent ORDER BY 2 DESC ")
+            val result = hiveCtx.sql("SELECT continent, sum(new_cases), SUM(total_cases), SUM(new_deaths), SUM(total_deaths), Round(SUM(new_cases)/SUM(population), 5) AS newCaseRate, SUM(new_deaths)/SUM(population) AS death_rate FROM table WHERE date = '2/7/2022' AND continent IS NOT NULL GROUP BY continent ORDER BY 2 DESC limit 10")
             result.show()
         }
 
@@ -206,10 +209,12 @@ object Main {
 
         //Method to calculate total Covid cases in places where more then half of the population is vaccinated
         //Fields: Population, Location, New_Cases, People_Fully_Vaccinated
-        def TotalCovidCasesInLocationsWhereTotalVaccinationRateIsAbove50Percent():Unit =  
+        def TotalCovidCasesInLocationsWhereTotalVaccinationRateIsAbove20Percent():Unit =  
         {
-val result = hiveCtx.sql("select sum(population), location, sum(new_cases), AVG(people_fully_vaccinated) from Table group by location") 
-result.show
+        val result = hiveCtx.sql("select location, sum(population), sum(new_cases), AVG(people_fully_vaccinated), sum(people_fully_vaccinated)/sum(population) * 100 as vaccination_rate from Table group by location order by vaccination_rate DESC limit 10") 
+        result.show
+        result.repartition(1).write.format("com.databricks.spark.csv").option("header","true").mode("overwrite").save("results/totalCovidCasesInLocationWhereTotalVaccinatioRateIsAbove50Percent")
+
         }
 
 
