@@ -98,7 +98,7 @@ object Main {
                 case 3 =>
                     MedianAgeOfDeath()
                 case 4 =>
-                    NewCasesInPeople70Plus()
+                    top10DeathRatesLocation()
                 case 5 =>
                     DeathsVSVaccinationPerContinent()
                 case 6 =>
@@ -152,9 +152,11 @@ object Main {
 
         //Method to calculate the number of new cases in people 70 and older and also their mortality rate
         //Fields: New_Cases, Aged_70_Older, New_Deaths, Total_Deaths
-        def NewCasesInPeople70Plus():Unit =  
+        def top10DeathRatesLocation():Unit =  
         {
             println("====================")
+            val result = hiveCtx.sql("Select location, SUM(population), SUM(total_deaths)/SUM(population) AS death_rate from table WHERE date = '2/7/2022' GROUP BY location ORDER by 3 DESC")
+            result.show()
 
 
         }
@@ -173,6 +175,8 @@ object Main {
         def LifeExpectancyOfPeople70Plus():Unit =  
         {
             println("====================")
+
+
 
         }
 
