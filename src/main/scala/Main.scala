@@ -21,9 +21,6 @@ object Main {
         sc.setLogLevel("ERROR")
         val hiveCtx = new HiveContext(sc)
         import hiveCtx.implicits._
-
-         
-       
         val spark = 
             SparkSession
             .builder
@@ -44,14 +41,14 @@ object Main {
     {
         hiveCtx.sql("DROP TABLE IF EXISTS Table")
         
-         val output = hiveCtx.read
+        val output = hiveCtx.read
             .format("csv")
             .option("inferSchema", "true")
             .option("header", "true")
             .load("input/covid-data.csv")
         
 
-     
+    
         output.createOrReplaceTempView("temp_data")
         hiveCtx.sql("CREATE TABLE IF NOT EXISTS Table (iso_code STRING, continent STRING, location STRING, date STRING, total_cases INT, new_cases INT, total_deaths INT, new_deaths INT, new_tests INT, total_tests INT, total_vaccinations INT, people_vaccinated INT, people_fully_vaccinated INT, population INT, population_density INT, median_age INT, aged_65_older INT, aged_70_older INT, gdp_per_capita INT, hospital_beds_per_thousand INT, life_expectancy INT )")
         hiveCtx.sql("INSERT INTO Table SELECT * FROM temp_data")
@@ -219,7 +216,7 @@ object Main {
         {
             println("====================")
             val result = hiveCtx.sql("select sum(population), location, sum(new_cases), AVG(people_fully_vaccinated) from Table group by location") 
-            result.show
+            result.show()
         }
 
 
