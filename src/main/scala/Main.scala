@@ -81,9 +81,9 @@ object Main {
             println("Main menu")
             println("1. Median Age Of Vaccinated People Based Off Location")
             println("2. Deaths Among Vaccinated People Between Ages 65 And 70")
-            println("3. Median Age Of Death")
+            println("3. Countries with the Highest Vaccinations")
             println("4. New Cases In People 70 Plus")
-            println("5. Deaths Vs. Vaccinations Per Continent")
+            println("5. Countries with the Highest Cases")
             println("6. LifeExpectancyOfPeople70Plus")
             println("7. Countries With Most fully Vaccinated People")
             println("8. New and Total Cases, New and Total Deaths In People 65 Plus Per Continent")
@@ -99,11 +99,11 @@ object Main {
                 case 2 =>
                     DeathsAmongVaccinatedPeopleBetweenAges65And70()
                 case 3 =>
-                    MedianAgeOfDeath()
+                    CountriesWithTheHighestNumberOfVaccinations()
                 case 4 =>
                     NewCasesInPeople70Plus()
                 case 5 =>
-                    DeathsVSVaccinationPerContinent()
+                    CountriesWithTheHighestNumberOfCases()
                 case 6 =>
                     LifeExpectancyOfPeople70Plus()
                 case 7 =>
@@ -145,9 +145,11 @@ object Main {
 
         //Method to calculate the median age of death
         //Fields: Median_Age, Total_Deaths
-        def MedianAgeOfDeath():Unit =  
+        def CountriesWithTheHighestNumberOfVaccinations():Unit =  
         {
-            
+         val result = hiveCtx.sql("SELECT location, MAX(total_vaccinations) AS vaccinations FROM Table GROUP BY location ORDER BY vaccinations DESC LIMIT 10")
+        result.show()
+        result.repartition(1).write.format("com.databricks.spark.csv").option("header", "true").mode("overwrite").save("results/CountriesWithTheHighestNumberOfVaccinations")
 
         }
 
@@ -161,10 +163,12 @@ object Main {
 
         //Method to calculate percentage of deaths and vaccinations in a contintent and comapare
         //Fields: Continent, Total_Deaths, People_Vaccinated
-        def DeathsVSVaccinationPerContinent():Unit =  
+        def CountriesWithTheHighestNumberOfCases():Unit =  
         {
 
-
+        val result = hiveCtx.sql("SELECT location, MAX(total_cases) AS cases FROM Table GROUP BY location ORDER BY cases DESC LIMIT 10")
+        result.show()
+        result.repartition(1).write.format("com.databricks.spark.csv").option("header", "true").mode("overwrite").save("results/CountriesWithTheHighestNumberOfCases")  
         }
 
         //Method to calculate the life expectancy of people 70 and up who contracted the virus
