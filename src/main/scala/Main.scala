@@ -109,9 +109,9 @@ object Main {
                 case 7 =>
                     ContinentWithMostFullyVaccinated()
                 case 8 =>
-                    NewAndTotalCases_NewAndTotalDeaths_InPeople65Plus_PerContinent()
+                    NewAndTotalCases_NewAndTotalDeaths_ByContinent()
                 case 9 =>
-                    PopulationDensityVsTotalVaccination_Cases_Deaths()
+                    PopulationDensityVsNewCaseRate()
                 case 10 =>
                     TotalCovidCasesInLocationsWhereTotalVaccinationRateIsAbove20Percent()
                 case 11 => //exit program by choosing 11, endProgram boolean is set to true and while look ends.
@@ -136,7 +136,7 @@ object Main {
         //Fields: New_Deaths, People_Vaccinated, Total_Vaccinations
         def DeathsAmongVaccinatedPeopleBetweenAges65And70():Unit =  
         {
-//this one
+        //this one
 
     val result = hiveCtx.sql("select location, sum(new_deaths), sum(people_vaccinated), sum(total_vaccinations), avg(aged_65_older) from Table group by location limit 10")
      result.show  
@@ -190,7 +190,7 @@ object Main {
 
         //Method to calculate all this stuff
         //Fields: new_cases, total_cases, new_deaths, total_deaths, aged_65_older, aged_70_older, continent, location
-        def NewAndTotalCases_NewAndTotalDeaths_InPeople65Plus_PerContinent():Unit =  
+        def NewAndTotalCases_NewAndTotalDeaths_ByContinent():Unit =  
         {
            println("====================")
             println("New/Total Cases, New/TotalDeaths by continent ")
@@ -202,7 +202,7 @@ object Main {
         //Method to calculate Population Density and compare it to Total Vaccinations, Cases, and Deaths
         //Fields: Population_Density, Population, Continent, Location, Date, Total_Cases, New_Cases, Total_Deaths
             //New_Deaths, New_Tests, Total_Tests, Total_Vaccinations
-        def PopulationDensityVsTotalVaccination_Cases_Deaths():Unit =  
+        def PopulationDensityVsNewCaseRate():Unit =  
         {
             println("====================")
             println("Population Density vs New Case Rate")
@@ -223,7 +223,7 @@ object Main {
         }
 
 
-   
+
     
         }
 
@@ -237,7 +237,7 @@ object Main {
 
 
     }
-}
+
 
 
     
@@ -247,4 +247,4 @@ object Main {
 
 
 
-
+}
