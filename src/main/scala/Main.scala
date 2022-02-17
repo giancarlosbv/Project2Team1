@@ -85,7 +85,7 @@ object Main {
             println("4. New Cases In People 70 Plus")
             println("5. Deaths Vs. Vaccinations Per Continent")
             println("6. LifeExpectancyOfPeople70Plus")
-            println("7. Continent With Most fully Vaccinated People")
+            println("7. Countries With Most fully Vaccinated People")
             println("8. New and Total Cases, New and Total Deaths In People 65 Plus Per Continent")
             println("9. Population Density Vs Total Vaccinations,Cases, and Deaths")
             println("10. Total Covid Cases In Locations Where Total Vaccination Rate Is Above 20 Percent")
@@ -171,7 +171,10 @@ object Main {
         //Fields: Life_Expectancy, Aged_70_Older
         def LifeExpectancyOfPeople70Plus():Unit =  
         {
-
+        val result = hiveCtx.sql("SELECT continent, MAX(life_expectancy) AS LifeExpectancy FROM Table GROUP BY continent ORDER BY LifeExpectancy DESC LIMIT 6")
+        result.show()
+        result.write.csv("results/SELECT continent, MAX(life_expectancy) AS LifeExpectancy FROM Table GROUP BY continent ORDER BY LifeExpectancy DESC LIMIT 6")
+        result.repartition(1).write.format("com.databricks.spark.csv").option("header", "true").mode("overwrite").save("results/LifeExpectancyByContinent")
 
         }
 
@@ -189,10 +192,11 @@ object Main {
         //Fields: new_cases, total_cases, new_deaths, total_deaths, aged_65_older, aged_70_older, continent, location
         def NewAndTotalCases_NewAndTotalDeaths_InPeople65Plus_PerContinent():Unit =  
         {
-            println("====================")
-            println("New/Total Cases, New/TotalDeaths in ")
-            val result = hiveCtx.sql("SELECT continent, sum(new_cases), SUM(total_cases), SUM(new_deaths), SUM(total_deaths), Round(SUM(new_cases)/SUM(population), 5) AS newCaseRate, SUM(new_deaths)/SUM(population) AS death_rate FROM table WHERE date = '2/7/2022' AND continent IS NOT NULL GROUP BY continent ORDER BY 2 DESC limit 10")
+           println("====================")
+            println("New/Total Cases, New/TotalDeaths by continent ")
+            val result = hiveCtx.sql("SELECT continent, sum(new_cases), SUM(total_cases), SUM(new_deaths), SUM(total_deaths), Round(SUM(new_cases)/SUM(population), 5) AS newCaseRate, SUM(new_deaths)/SUM(population) AS death_rate FROM table WHERE date = '2/7/2022' AND continent IS NOT NULL GROUP BY continent ORDER BY 2 DESC limit 10 ")
             result.show()
+            result.repartition(1).write.format("com.databricks.spark.csv").option("header","true").mode("overwrite").save("results/NewAndTotalCases_NewAndTotalDeaths_ByContinent")
         }
 
         //Method to calculate Population Density and compare it to Total Vaccinations, Cases, and Deaths
@@ -200,10 +204,11 @@ object Main {
             //New_Deaths, New_Tests, Total_Tests, Total_Vaccinations
         def PopulationDensityVsTotalVaccination_Cases_Deaths():Unit =  
         {
-            // println("====================")
-            // println("New/Total Cases, New/TotalDeaths in ")
-            // val result = hiveCtx.sql("SELECT continent, SUM(new_cases), SUM(total_cases), SUM(new_deaths), SUM(total_deaths) FROM table WHERE continent IS NOT NULL GROUP BY continent ORDER BY 2 DESC ")
-            // result.show()
+            println("====================")
+            println("Population Density vs New Case Rate")
+            val result = hiveCtx.sql("SELECT location, sum(population), AVG(population_density), SUM(new_cases)/SUM(population) AS NewCaseRate , sum(new_cases) FROM table WHERE date = '2/7/2022' group by location order by 3 DESC limit 10 ")
+            result.show()
+           result.repartition(1).write.format("com.databricks.spark.csv").option("header","true").mode("overwrite").save("results/PopulationDensityVsNewCaseRate")
 
         }
 
