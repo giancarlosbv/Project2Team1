@@ -36,9 +36,7 @@ To-do list:
 > when run, users can choose an option between 1-10 and will have results displayed.
 ## Contributors
 
-> Daulton Schilling
+> Daulton Schilling, 
 > Tyler Ivy
 
-## License
 
-This project uses the following license: [<license_name>](<link>).
